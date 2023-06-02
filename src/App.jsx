@@ -1,29 +1,32 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { fetchDataFromApi } from "./utils/api";
 
-import "./App.css";
-import { fetchDataFromApi } from "./utils/api.js";
-import { useDispatch, useSelector } from "react-redux";
-import { getApiConfiguration, getGenres } from "./store/homeSlice.js";
+import { useSelector, useDispatch } from "react-redux";
+import { getApiConfiguration, getGenres } from "./store/homeSlice";
 
-import Header from "./components/header/Header.jsx";
-import Footer from "./components/Footer/Footer.jsx";
-import Home from "./pages/home/Home.jsx";
-import Details from "./pages/details/Details.jsx";
-import SearchResult from "./pages/searchResult/SearchResult.jsx";
-import Explore from "./pages/explore/Explore.jsx";
-import Error from "./pages/error/Error.jsx";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Header from "./components/header/Header";
+import Footer from "./components/footer/Footer";
+import Home from "./pages/home/Home";
+import Details from "./pages/details/Details";
+import SearchResult from "./pages/searchResult/SearchResult";
+import Explore from "./pages/explore/Explore";
+import PageNotFound from "./pages/error/Error.jsx";
 
 function App() {
   const dispatch = useDispatch();
   const { url } = useSelector((state) => state.home);
   console.log(url);
+
   useEffect(() => {
     fetchApiConfig();
+    // genresCall();
   }, []);
 
   const fetchApiConfig = () => {
     fetchDataFromApi("/configuration").then((res) => {
+      console.log(res);
+
       const url = {
         backdrop: res.images.secure_base_url + "original",
         poster: res.images.secure_base_url + "original",
@@ -34,7 +37,23 @@ function App() {
     });
   };
 
-  // ?. => it is called optional chaining if url variable's value is undefined, then further execution will not take place.
+  const genresCall = async () => {
+    let promises = [];
+    let endPoints = ["tv", "movie"];
+    let allGenres = {};
+
+    endPoints.forEach((url) => {
+      promises.push(fetchDataFromApi(`/genre/${url}/list`));
+    });
+
+    const data = await Promise.all(promises);
+    console.log(data);
+    data.map(({ genres }) => {
+      return genres.map((item) => (allGenres[item.id] = item));
+    });
+
+    dispatch(getGenres(allGenres));
+  };
 
   return (
     <BrowserRouter>
@@ -44,7 +63,7 @@ function App() {
         <Route path="/:mediaType/:id" element={<Details />} />
         <Route path="/search/:query" element={<SearchResult />} />
         <Route path="/explore/:mediaType" element={<Explore />} />
-        <Route path="*" element={<Error />} />
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
       <Footer />
     </BrowserRouter>
