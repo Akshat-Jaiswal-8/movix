@@ -14,6 +14,7 @@ import PosterFallback from "../../../assets/no-poster.png";
 // import Genres from "../genres/Genres";
 import "./carousel.scss";
 import dayjs from "dayjs";
+import CircleRating from "../circleRating/CircleRating.jsx";
 
 function Carousel({ data, loading }) {
   const carouselContainer = useRef();
@@ -57,6 +58,7 @@ function Carousel({ data, loading }) {
                 <div className={"carouselItem"} key={item.id}>
                   <div className={"posterBlock"}>
                     <Img src={posterUrl} />
+                    <CircleRating rating={item.vote_average.toFixed(1)} />
                   </div>
                   <div className="textBlock">
                     <span className={"title"}>{item.title || item.name}</span>
